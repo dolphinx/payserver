@@ -1,7 +1,7 @@
 'use strict';
 
-var db = require('./db');
-var model = {
+const db = require('./db');
+const model = {
 	getAll: function (PID, filter, onSearch) {
 		db.open(function (db) {
 			if (!!filter)
@@ -11,9 +11,15 @@ var model = {
 		});
 		return true;
 	},
-	getAllDropDown: function (onSearch) {
+	getAIDDropDown: function (onSearch) {
 		db.open(function (db) {
-			db.all("select a.ID ID,o.NAME O,b.NAME B,a.NAME A,o.ID PID from ORIGINATOR o inner join BASE_ACCOUNT b on o.ID=b.PID inner join ACCOUNT a on b.ID=a.PID", onSearch);
+			db.all("select a.ID ID,o.NAME O,b.NAME B,a.NAME A,o.ID PID from ORIGINATOR o inner join BASE_ACCOUNT b on o.ID=b.PID inner join ACCOUNT a on b.ID=a.PID left join (select AID,count(1) C from TRADE) t on a.ID=t.AID order by t.C desc", onSearch);
+		});
+		return true;
+	},
+	getMIDDropDown: function (onSearch) {
+		db.open(function (db) {
+			db.all("select a.ID ID,o.NAME O,b.NAME B,a.NAME A,o.ID PID from ORIGINATOR o inner join BASE_ACCOUNT b on o.ID=b.PID inner join ACCOUNT a on b.ID=a.PID left join (select MID,count(1) C from TRADE) t on a.ID=t.MID order by t.C desc", onSearch);
 		});
 		return true;
 	},

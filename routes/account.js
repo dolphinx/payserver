@@ -1,8 +1,8 @@
 ﻿'use strict';
 
-var express = require('express');
-var controller = require('../controllers/account');
-var router = express.Router();
+const express = require('express');
+const controller = require('../controllers/account');
+const router = express.Router();
 
 router.get('/', function (req, res, next) {
 	if (!controller.getAll(req.query.PID, req.query.filter, function (err, rows) {
@@ -12,7 +12,7 @@ router.get('/', function (req, res, next) {
 		res.send('1000');
 });
 router.post('/', function (req, res, next) {
-	var model = req.body;
+	const model = req.body;
 	if (!controller.create(model, function (err) {
 		if (err !== null) {
 			if (err.errno === 19)
@@ -29,7 +29,7 @@ router.post('/', function (req, res, next) {
 		res.send('1000');
 });
 router.put('/:id', function (req, res, next) {
-	var model = req.body;
+	const model = req.body;
 	model.ID = req.params.id;
 	if (!controller.update(model, function (err) {
 		if (err !== null) {
@@ -52,8 +52,15 @@ router.delete('/:id', function (req, res, next) {
 	}))
 		res.send('1000');
 });
-router.get('/dropdown', function (req, res, next) {
-	if (!controller.getAllDropDown(function (err, rows) {
+router.get('/aiddropdown', function (req, res, next) {
+	if (!controller.getAIDDropDown(function (err, rows) {
+		res.setHeader('Cache-Control', 'no-cache');
+		res.send(rows);
+	}))
+		res.send('1000');
+});
+router.get('/middropdown', function (req, res, next) {
+	if (!controller.getMIDDropDown(function (err, rows) {
 		res.setHeader('Cache-Control', 'no-cache');
 		res.send(rows);
 	}))

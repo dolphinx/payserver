@@ -1,11 +1,11 @@
 'use strict';
 
-var db = require('./db');
-var model = {
+const db = require('./db');
+const model = {
 	getAll: function (startDate, endDate, onSearch) {
 		db.open(function (db) {
-			var wheres = [];
-			var params = [];
+			const wheres = [];
+			const params = [];
 			if (!!startDate) {
 				wheres.push('TIME>=?');
 				params.push(startDate);
@@ -14,7 +14,7 @@ var model = {
 				wheres.push('TIME<?');
 				params.push(endDate);
 			}
-			var source;
+			let source;
 			if (wheres.length > 0)
 				source = '(select * from TRADE0 where ' + wheres.join(' and ') + ')';
 			else
@@ -25,6 +25,14 @@ var model = {
 	},
 	create: function (model, onCreate) {
 		if (!!model.TIME) {
+			if (!model.PAYAMOUNT)
+				model.PAYAMOUNT = 0;
+			if (!model.AMOUNT)
+				model.AMOUNT = 0;
+			if (!model.COUPON)
+				model.COUPON = 0;
+			if (!model.DISCOUNT)
+				model.DISCOUNT = 0;
 			db.open(function (db) {
 				db.run("insert into TRADE0(TIME,LOCATION,SPLIT,AID,PAYAMOUNT,OID,CID,MID,AMOUNT,DISCOUNT,COUPON,REMARK)values(?,?,?,?,?,?,?,?,?,?,?,?)", model.TIME, model.LOCATION, model.SPLIT, model.AID, model.PAYAMOUNT, model.OID, model.CID, model.MID, model.AMOUNT, model.DISCOUNT, model.COUPON, model.REMARK, onCreate);
 			});
@@ -33,6 +41,14 @@ var model = {
 	},
 	update: function (model, onUpdate) {
 		if (!!model.ID) {
+			if (!model.PAYAMOUNT)
+				model.PAYAMOUNT = 0;
+			if (!model.AMOUNT)
+				model.AMOUNT = 0;
+			if (!model.COUPON)
+				model.COUPON = 0;
+			if (!model.DISCOUNT)
+				model.DISCOUNT = 0;
 			db.open(function (db) {
 				db.run("update TRADE0 set TIME=?,LOCATION=?,SPLIT=?,AID=?,PAYAMOUNT=?,OID=?,CID=?,MID=?,AMOUNT=?,DISCOUNT=?,COUPON=?,REMARK=? where ID=?", model.TIME, model.LOCATION, model.SPLIT, model.AID, model.PAYAMOUNT, model.OID, model.CID, model.MID, model.AMOUNT, model.DISCOUNT, model.COUPON, model.REMARK, model.ID, onUpdate);
 			});
@@ -50,11 +66,38 @@ var model = {
 			return true;
 		}
 	},
-	mostAccount: function () {
-		//select AID,count(1) C from TRADE0 order by C desc
-	},
-	mostOriginator: function () {
-		//select b.PID ID,count(1) C from TRADE0 t inner join ACCOUNT a on t.AID=a.ID inner join BASE_ACCOUNT b on a.PID=b.ID order by C desc
+	createTrade1: function (model, isUpdate) {
+		if (!isUpdate && model.SPLIT === 0)
+			return;
+		db.open(function (db) {
+			if (isUpdate)
+				db.run("delete from TRADE1 where TID=?", model.ID);
+			if (model.SPLIT === 0)
+				return;
+			if (model.SPLIT === 1)
+				model.charges = [model];
+			else if (model.SPLIT === 2)
+				model.pays = [model];
+			model.pays.forEach(function (p) {
+				if (!p.PAYAMOUNT)
+					p.PAYAMOUNT = 0;
+			});
+			model.charges.forEach(function (c) {
+				if (!c.AMOUNT)
+					c.AMOUNT = 0;
+				if (!c.COUPON)
+					c.COUPON = 0;
+				if (!c.DISCOUNT)
+					c.DISCOUNT = 0;
+			});
+			model.pays.forEach(function (p) {
+				model.charges.forEach(function (c) {
+					const chargeRatio = !!model.AMOUNT ? c.AMOUNT / model.AMOUNT : 1;
+					const payRatio = !!model.PAYAMOUNT ? p.PAYAMOUNT / model.PAYAMOUNT : 1;
+					db.run("insert into TRADE1(TID,TIME,LOCATION,AID,PAYAMOUNT,OID,CID,MID,AMOUNT,DISCOUNT,COUPON)values(?,?,?,?,?,?,?,?,?,?,?)", model.ID, model.TIME, model.LOCATION, p.AID, chargeRatio * p.PAYAMOUNT, c.OID, c.CID, c.MID, payRatio * c.AMOUNT, payRatio * c.DISCOUNT, payRatio * c.COUPON);
+				});
+			});
+		});
 	}
 };
 module.exports = model;

@@ -1,6 +1,6 @@
 'use strict';
 
-var settings = {
+const settings = {
 	"server": {
 		//"portForProxy": 80,
 		"port": 8080

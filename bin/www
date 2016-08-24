@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-var debug = require('debug')('server');
-var https = require('https');
-var fs = require('fs');
-var settings = require('../settings');
-var app = require('../app');
+const debug = require('debug')('server');
+const https = require('https');
+const fs = require('fs');
+const settings = require('../settings');
+const app = require('../app');
 
-var port = settings.server.portForProxy || settings.server.port || 3000
+const port = settings.server.portForProxy || settings.server.port || 3000
 app.set('port', port);
-var server;
+let server;
 if (settings.server.ssl) {
     server = https.createServer({
         key: fs.readFileSync(settings.server.ssl.key),
@@ -23,7 +23,7 @@ server.on('error', function (error) {
     throw error;
   }
 
-  var bind = typeof port === 'string'
+  const bind = typeof port === 'string'
     ? 'Pipe ' + port
     : 'Port ' + port;
 
@@ -42,8 +42,8 @@ server.on('error', function (error) {
   }
 });
 server.on('listening', function () {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
+  const addr = server.address();
+  const bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
@@ -51,7 +51,7 @@ server.on('listening', function () {
 //server.setTimeout(0);
 
 function normalizePort(val) {
-  var port = parseInt(val, 10);
+  const port = parseInt(val, 10);
 
   if (isNaN(port)) {
     // named pipe

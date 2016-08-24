@@ -1,11 +1,11 @@
 ﻿'use strict';
 
-var express = require('express');
-var controller = require('../controllers/charge');
-var router = express.Router();
+const express = require('express');
+const controller = require('../controllers/charge');
+const router = express.Router();
 
 router.get('/', function (req, res, next) {
-	var param = req.query;
+	const param = req.query;
 	if (!controller.getAll(param.TID, function (err, rows) {
 		res.setHeader('Cache-Control', 'no-cache');
 		res.send(rows);
@@ -13,7 +13,7 @@ router.get('/', function (req, res, next) {
 		res.send('1000');
 });
 router.post('/', function (req, res, next) {
-	var model = req.body;
+	const model = req.body;
 	if (!controller.create(model, function (err) {
 		if (err !== null) {
 			if (!!err.errorCode)
@@ -28,7 +28,7 @@ router.post('/', function (req, res, next) {
 		res.send('1000');
 });
 router.put('/:id', function (req, res, next) {
-	var model = req.body;
+	const model = req.body;
 	model.ID = req.params.id;
 	if (!controller.update(model, function (err) {
 		if (err !== null) {

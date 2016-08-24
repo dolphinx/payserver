@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 
 const routes = require('./routes/index');
-var settings = require('./settings');
+const settings = require('./settings');
 
 const clientRoot = path.join(__dirname, '..', 'payclient');
 const build = require('./build');

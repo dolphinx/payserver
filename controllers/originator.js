@@ -1,7 +1,7 @@
 'use strict';
 
-var db = require('./db');
-var model = {
+const db = require('./db');
+const model = {
 	getAll: function (filter, onSearch) {
 		db.open(function (db) {
 			if (!!filter)
@@ -13,7 +13,7 @@ var model = {
 	},
 	getAllDropDown: function (onSearch) {
 		db.open(function (db) {
-			db.all("select ID,NAME from ORIGINATOR where TYPE=0", onSearch);
+			db.all("select ID,NAME from ORIGINATOR o left join (select OID,count(1) C from TRADE) t on o.ID=t.OID where TYPE=0 order by t.C desc", onSearch);
 		});
 		return true;
 	},

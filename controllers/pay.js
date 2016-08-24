@@ -1,7 +1,7 @@
 'use strict';
 
-var db = require('./db');
-var model = {
+const db = require('./db');
+const model = {
 	getAll: function (TID, onSearch) {
 		db.open(function (db) {
 			db.all("select t.ID ID,b.PID AOID,AID,PAYAMOUNT from PAY t left join ACCOUNT a on t.AID=a.ID left join BASE_ACCOUNT b on a.PID=b.ID where t.TID=?", TID, onSearch);
@@ -10,6 +10,8 @@ var model = {
 	},
 	create: function (model, onCreate) {
 		if (!!model.TID) {
+			if (!model.PAYAMOUNT)
+				model.PAYAMOUNT = 0;
 			db.open(function (db) {
 				db.run("insert into PAY(TID,AID,PAYAMOUNT)values(?,?,?)", model.TID, model.AID, model.PAYAMOUNT, onCreate);
 			});
@@ -18,6 +20,8 @@ var model = {
 	},
 	update: function (model, onUpdate) {
 		if (!!model.ID) {
+			if (!model.PAYAMOUNT)
+				model.PAYAMOUNT = 0;
 			db.open(function (db) {
 				db.run("update PAY set OID=?,CID=?,MID=?,PAYAMOUNT=?,DISCOUNT=?,COUPON=?,REMARK=? where ID=?", model.AID, model.PAYAMOUNT, model.ID, onUpdate);
 			});

@@ -19,6 +19,9 @@ create table BASE_ACCOUNT(
 	TYPE integer,
 	CREATE_TIME timestamp not null default (datetime('now','localtime'))
 );
+create index BASE_ACCOUNT_PID on BASE_ACCOUNT (
+	PID
+);
 
 create table ACCOUNT(
 	ID integer primary key autoincrement,
@@ -28,6 +31,9 @@ create table ACCOUNT(
 	IL integer,
 	UID integer default 1,
 	CREATE_TIME timestamp not null default (datetime('now','localtime'))
+);
+create index ACCOUNT_PID on ACCOUNT (
+	PID
 );
 
 create table BASE_CATEGORY(
@@ -44,12 +50,15 @@ create table CATEGORY(
 	REMARK text,
 	CREATE_TIME timestamp not null default (datetime('now','localtime'))
 );
+create index CATEGORY_PID on CATEGORY (
+	PID
+);
 
 create table TRADE0(
 	ID integer primary key autoincrement,
+	SPLIT integer,
 	TIME timestamp not null,
 	LOCATION text,
-	SPLIT integer,
 	AID integer,
 	PAYAMOUNT integer,
 	CID integer,
@@ -61,12 +70,15 @@ create table TRADE0(
 	REMARK text,
 	CREATE_TIME timestamp not null default (datetime('now','localtime'))
 );
+create index TRADE0_SPLIT on TRADE0 (
+	SPLIT
+);
+
 create table TRADE1(
 	ID integer primary key autoincrement,
 	TID integer,
 	TIME timestamp not null,
 	LOCATION text,
-	SPLIT integer,
 	AID integer,
 	PAYAMOUNT integer,
 	CID integer,
@@ -76,6 +88,10 @@ create table TRADE1(
 	DISCOUNT integer,
 	COUPON integer
 );
+create index TRADE1_TID on TRADE1 (
+	TID
+);
+
 create table CHARGE(
 	ID integer primary key autoincrement,
 	TID integer,
@@ -87,9 +103,46 @@ create table CHARGE(
 	COUPON integer,
 	REMARK text
 );
+create index CHARGE_TID on CHARGE (
+	TID
+);
+
 create table PAY(
 	ID integer primary key autoincrement,
 	TID integer,
 	AID integer,
 	PAYAMOUNT integer
 );
+create index PAY_TID on PAY (
+	TID
+);
+
+CREATE VIEW TRADE AS
+	SELECT ID,
+		   0 TID,
+		   TIME,
+		   LOCATION,
+		   AID,
+		   PAYAMOUNT,
+		   CID,
+		   OID,
+		   MID,
+		   AMOUNT,
+		   DISCOUNT,
+		   COUPON
+	  FROM TRADE0
+	 WHERE SPLIT = 0
+	UNION ALL
+	SELECT ID,
+		   TID,
+		   TIME,
+		   LOCATION,
+		   AID,
+		   PAYAMOUNT,
+		   CID,
+		   OID,
+		   MID,
+		   AMOUNT,
+		   DISCOUNT,
+		   COUPON
+	  FROM TRADE1;

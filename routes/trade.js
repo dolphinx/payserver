@@ -1,11 +1,11 @@
 ﻿'use strict';
 
-var express = require('express');
-var controller = require('../controllers/trade');
-var router = express.Router();
+const express = require('express');
+const controller = require('../controllers/trade');
+const router = express.Router();
 
 router.get('/', function (req, res, next) {
-	var param = req.query;
+	const param = req.query;
 	if (!controller.getAll(param.startDate, param.endDate, function (err, rows) {
 		res.setHeader('Cache-Control', 'no-cache');
 		res.send(rows);
@@ -13,7 +13,7 @@ router.get('/', function (req, res, next) {
 		res.send('1000');
 });
 router.get('/charge', function (req, res, next) {
-	var param = req.query;
+	const param = req.query;
 	if (!controller.getCharge(param.ID, function (err, rows) {
 		res.setHeader('Cache-Control', 'no-cache');
 		res.send(rows);
@@ -21,7 +21,7 @@ router.get('/charge', function (req, res, next) {
 		res.send('1000');
 });
 router.post('/', function (req, res, next) {
-	var model = req.body;
+	const model = req.body;
 	if (!controller.create(model, function (err) {
 		if (err !== null) {
 			if (!!err.errorCode)
@@ -31,12 +31,14 @@ router.post('/', function (req, res, next) {
 		}
 		else {
 			res.send({ ID: this.lastID });
+			model.ID = this.lastID;
+			controller.createTrade1(model, false);
 		}
 	}))
 		res.send('1000');
 });
 router.put('/:id', function (req, res, next) {
-	var model = req.body;
+	const model = req.body;
 	model.ID = req.params.id;
 	if (!controller.update(model, function (err) {
 		if (err !== null) {
@@ -47,6 +49,7 @@ router.put('/:id', function (req, res, next) {
 		}
 		else {
 			res.send({});
+			controller.createTrade1(model, true);
 		}
 	}))
 		res.send('1000');

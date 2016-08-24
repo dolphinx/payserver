@@ -1,7 +1,7 @@
 'use strict';
 
-var db = require('./db');
-var model = {
+const db = require('./db');
+const model = {
 	getAll: function (PID, filter, onSearch) {
 		db.open(function (db) {
 			if (!!filter)

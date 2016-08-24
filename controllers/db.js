@@ -1,11 +1,11 @@
 'use strict';
 
-var sqlite3 = require('sqlite3').verbose();
-var settings = require('../settings');
-var path = require('path').join(__dirname, '../' + settings.db.path);
-var db = {
+const sqlite3 = require('sqlite3').verbose();
+const settings = require('../settings');
+const path = require('path').join(__dirname, '../' + settings.db.path);
+const db = {
 	open: function (onOpen) {
-		var db = new sqlite3.Database(path, sqlite3.OPEN_READWRITE, function (err) {
+		const db = new sqlite3.Database(path, sqlite3.OPEN_READWRITE, function (err) {
 			if (err !== null) {
 				console.log('ERROR: ' + err.message);
 				return;
@@ -17,7 +17,7 @@ var db = {
 		});
 	},
 	exec: function (sql, onExec) {
-		var db = new sqlite3.Database(path, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, function (err) {
+		const db = new sqlite3.Database(path, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, function (err) {
 			if (err !== null) {
 				console.log('ERROR: ' + err.message);
 				return;
