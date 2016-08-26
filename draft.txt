@@ -1,0 +1,149 @@
+UNIT
+ID, NAME, RATE
+
+ORIGINATOR
+ID, NAME, GROUP, TYPE
+个人或单位或商户
+发起人，其他
+
+BASE_ACCOUNT
+ID, NAME, PID, TYPE
+商户，银行，支付，购物，运营商，
+借记，贷记，支付宝，理财通，付费通，京东，国美黄金，翼支付，电信，移动，联通
+
+ACCOUNT
+PID, ID, NAME, WTL, IL, UNIT
+WTL：实时，准实时，T+x，定期，无期
+IL：无息，低息，一般，较高，过期扣息
+
+BASECATEGORY
+CATEGORY
+ID, NAME, REMARK
+
+TRADE0
+ID, TIME, LOCATION, SPLIT, AID, PAYAMOUNT, CID, OID, MID, AMOUNT, DISCOUNT, COUPON, REMARK
+ID=1,PAYAMOUNT=100,AMOUNT=100,DISCOUNT=10,SPLIT=3
+SPLIT:
+1 or 2
+3
+
+TRADE1
+ID, TID, TIME, LOCATION, AID, PAYAMOUNT, CID, OID, MID, AMOUNT, DISCOUNT, COUPON
+TID=1,PAYAMOUNT=48,AMOUNT=48,DISCOUNT=8,MID=M,AID=A
+TID=1,PAYAMOUNT=12,AMOUNT=12,DISCOUNT=2,MID=M,AID=B
+TID=1,PAYAMOUNT=32,AMOUNT=32,DISCOUNT=0,MID=N,AID=A
+TID=1,PAYAMOUNT=8,AMOUNT=8,DISCOUNT=0,MID=N,AID=B
+
+CHARGE
+ID, TID, CID, OID, MID, AMOUNT, DISCOUNT, COUPON, REMARK
+TID=1,AMOUNT=60,DISCOUNT=10,MID=M
+TID=1,AMOUNT=40,DISCOUNT=0,MID=N
+
+PAY
+ID, TID, AID, AMOUNT, REMARK
+TID=1,AMOUNT=80,AID=A
+TID=1,AMOUNT=20,AID=B
+
+
+M总账户=A+B+C
+A普通账户
+X商户或单位
+B充值账户（WTL不支持）
+C信用卡（IL过期扣息）
+
+2计划支出无信用卡充值账号 M-X
+1实际支出 A-* - A-A'
+3计划支出无信用卡
+4计划支出无充值账号
+A-X，支付，1111
+B-X，支付，0101
+C-X，支付，0110
+
+A-B，充值，1010
+C-B，充值，0010
+A-C，还款，1001
+
+C-X+C-B=A-C
+B-X=A-B+C-B
+
+A-A，转帐
+C-A，取现
+
+借记卡=>付费宝 A-B
+信用卡=>商户 C-X
+
+付费宝=>缴费 B-X
+借记卡=>信用卡 A-C
+
+
+借记卡=>信用卡=>付费宝=>缴费
+B-X，支付，0101
+C-B，充值，0010
+A-C，还款，1001
+
+X-A，收入，实际
+
+
+
+//originator级
+select t.* from TRADE t left join ACCOUNT a on t.AID=a.ID left join BASE_ACCOUNT ba on a.PID=ba.ID left join ACCOUNT ma on t.MID=ma.ID left join BASE_ACCOUNT mb on ma.PID=mb.ID
+	剔除条件 ba.PID!=mb.PID
+支出条件:
+	某子账户 AID=?
+	某总账户 a.PID=?
+	某发起人 ba.PID=?
+	某发起人要求 OID=?
+狭义收入条件：
+	某子账户 MID=?
+	某总账户 ma.PID=?
+	某发起人 mb.PID=?
+
+//group级
+select t.* from TRADE t left join ACCOUNT a on t.AID=a.ID left join BASE_ACCOUNT ba on a.PID=ba.ID left join ORIGINATOR o on ba.OID=o.ID left join ACCOUNT ma on t.MID=ma.ID left join BASE_ACCOUNT mb on ma.PID=mb.ID left join ORIGINATOR mo on mb.OID=mo.ID
+	剔除条件 ba.PID!=mb.PID /*check(o.GROUPNAME mo.GROUPNAME)*/
+支出条件:
+	某子账户 AID=?
+	某总账户 a.PID=?
+	某发起人 ba.PID=?
+	某发起人要求 OID=?
+	某分组 check o.GROUPNAME
+狭义收入条件：
+	某子账户 MID=?
+	某总账户 ma.PID=?
+	某发起人 mb.PID=?
+	某分组 check mo.GROUPNAME
+
+1实际支出： 支付账号不是信用卡或充值账号，收款账号非本人或者本人信用卡或本人充值账号
+where (a.WTL!=不支持 and a.IL!=过期扣息) and ({剔除条件} or m.WTL==不支持 or m.IL==过期扣息)
+
+2计划支出:
+where {剔除条件}
+
+3计划支出：支付账号不是充值账号，收款账号非本人或者本人充值账号
+where a.WTL!=不支持 and ({剔除条件} or m.WTL==不支持)
+
+4计划支出：支付账号不是信用卡，收款账号非本人或者本人信用卡
+where a.IL!=过期扣息 and ({剔除条件} or m.IL==过期扣息)
+-
+信用卡=>本人账号
+where a.IL==过期扣息 and !{剔除条件}
+
+狭义收入：
+AMOUNT where {剔除条件}
+
+广义收入：
+X-M.AMOUNT
+M-X.DISCOUNT
+X'-X.AMOUNT
+
+A O M 
+O * M
+M * O
+X M X
+
+发起人
+AMOUNT where mb.PID=? and {剔除条件}
++
+DISCOUNT where ba.PID=? and {剔除条件}
++
+AMOUNT+DISCOUNT where OID=? and ba.PID!=? and mb.PID!=?
